@@ -4,7 +4,7 @@
 
 echo Welcome to rpi2strap!
 
-[ `id -u` ne 0 ] && echo Run as root with sudo! && exit 1
+[ `id -u` -ne 0 ] && echo Run as root with sudo! && exit 1
 
 ( [ "$1" == "" ] || [ ! -e "$1" ] ) && \
 				echo Please specify your sdcard. && \
@@ -12,7 +12,6 @@ echo Welcome to rpi2strap!
 				exit 1
 
 [ ! -e /sbin/mkfs.msdos ] && echo Please install dosfstools && exit 1
-#[ ! -e /usr/bin/qemu-arm-static ] && echo Please install qemu-user-static && exit 1
 [ ! -e /usr/bin/cdebootstrap ] && echo Please install cdebootstrap && exit 1
 [ ! -e /usr/bin/curl ] && echo Please install curl && exit 1
 
@@ -27,10 +26,6 @@ umount -f ${sdcard}* 2>/dev/null
 echo This is your last chance to abort this.
 read -p "Your sdcard is $sdcard. Is that right? [y] " ok
 [ "$ok" != "y" ] && echo "Ok, abort." && exit 1
-
-# First let's download some files we need later
-curl -o $tmpdir/root/usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update
-chmod +x $tmpdir/root/usr/bin/rpi-update
 
 # Delete MBR with dd because fdisk doesn't work sometimes
 dd if=/dev/zero of=$sdcard bs=1M count=1
@@ -49,6 +44,8 @@ mount ${sdcard}2 $tmpdir/root
 cdebootstrap --arch=armhf -f standard --foreign jessie --include=openssh-server,cpufrequtils,cpufreqd,ntp,fake-hwclock,tzdata,locales,keyboard-configuration $tmpdir/root
 
 # Install kernel and modules
+curl -o $tmpdir/root/usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update
+chmod +x $tmpdir/root/usr/bin/rpi-update
 mkdir $tmpdir/root/lib/modules
 ROOT_PATH=$tmpdir/root BOOT_PATH=$tmpdir/boot $tmpdir/root/usr/bin/rpi-update
 
@@ -135,6 +132,9 @@ Package: *
 Pin: release n=jessie-backports
 Pin-Priority: -1
 EOF
+
+# Reconfigure some packages
+run dpkg-reconfigure locales tzdata keyboard-configuration 
 EOT
 tail -n +2 init01 >>$tmpdir/root/sbin/init
 sed -i'' 's/^finish$/run reboot/' $tmpdir/root/sbin/init
