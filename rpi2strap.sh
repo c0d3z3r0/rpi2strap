@@ -49,7 +49,7 @@ cdebootstrap --arch=armhf -f standard --foreign jessie --include=openssh-server,
 
 # Install kernel and modules
 mkdir $tmpdir/root/lib/modules
-ROOT_PATH=$tmpdir/root BOOT_PATH=$tmpdir/boot $tmpdir/rpi-update 
+ROOT_PATH=$tmpdir/root BOOT_PATH=$tmpdir/boot $tmpdir/root/usr/bin/rpi-update
 
 # Add cmdline and config to boot partition
 cat <<"EOF" >$tmpdir/boot/cmdline.txt
