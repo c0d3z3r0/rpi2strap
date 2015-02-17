@@ -118,13 +118,13 @@ EOF
 cat <<"EOF" >/etc/apt/apt.conf.d/01debian
 APT::Default-Release "jessie";
 aptitude::UI::Package-Display-Format "%c%a%M%S %p %Z %v %V %t";
+EOF
 
 # Update & Upgrade
 run ifconfig eth0 up
 run dhclient
 run aptitude -y update
 run aptitude -y upgrade
-EOF
 
 # APT pinning
 cat <<"EOF" >/etc/apt/preferences.d/aptpinning
@@ -134,7 +134,7 @@ Pin-Priority: -1
 EOF
 
 # Reconfigure some packages
-run dpkg-reconfigure locales tzdata keyboard-configuration 
+run dpkg-reconfigure locales tzdata keyboard-configuration
 EOT
 tail -n +2 init01 >>$tmpdir/root/sbin/init
 sed -i'' 's/^finish$/run reboot/' $tmpdir/root/sbin/init
