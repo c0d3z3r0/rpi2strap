@@ -1,4 +1,7 @@
 #!/bin/bash
+# Author: Michael Niewöhner (c0d3z3r0)
+# https://github.com/c0d3z3r0/rpi2strap
+
 echo Welcome to rpi2strap!
 
 [ `id -u` ne 0 ] && echo Run as root with sudo! && exit 1
@@ -13,25 +16,25 @@ echo Welcome to rpi2strap!
 [ ! -e /usr/bin/cdebootstrap ] && echo Please install cdebootstrap && exit 1
 [ ! -e /usr/bin/curl ] && echo Please install curl && exit 1
 
+# Set up temp environment
 tmpdir=$(mktemp -d)
 sdcard=$(echo $1 | sed 's/[0-9]*$//')
 mkdir $tmpdir/{boot,root}
 umount -f ${sdcard}* 2>/dev/null
 
-#Last warning ;-)
+# Last warning ;-)
 echo This is your last chance to abort this.
 read -p "Your sdcard is $sdcard. Is that right? [y] " ok
 [ "$ok" != "y" ] && echo "Ok, abort." && exit 1
 
-#First let's download some files we need later
-curl -o $tmpdir/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update
-chmod +x $tmpdir/rpi-update
+# First let's download some files we need later
+curl -o $tmpdir/root/usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update
+chmod +x $tmpdir/root/usr/bin/rpi-update
 
-
-#Delete MBR with dd because fdisk doesn't work sometimes
+# Delete MBR with dd because fdisk doesn't work sometimes
 dd if=/dev/zero of=$sdcard bs=1M count=1
 
-#Create partitions on SDcard
+# Create partitions on SDcard
 echo "o\nx\nh\n4\ns\n16\nr\nn\np\n1\n\n+30M\nt\ne\nn\np\n2\n\n\nw\n" | fdisk $sdcard
 (echo o; echo n; echo p; echo 1; echo ; echo +32M; echo t; echo e; echo n; echo p; echo 2; echo ; echo ; echo w) | fdisk $sdcard
 
@@ -41,14 +44,14 @@ mkfs.ext4 ${sdcard}2
 mount ${sdcard}1 $tmpdir/boot
 mount ${sdcard}2 $tmpdir/root
 
-#Ok, let's install debian jessie
+# Ok, let's install debian jessie
 cdebootstrap --arch=armhf -f standard --foreign jessie --include=openssh-server,cpufrequtils,cpufreqd,ntp,fake-hwclock,tzdata,locales,keyboard-configuration $tmpdir/root
 
-#Install kernel and modules
+# Install kernel and modules
 mkdir $tmpdir/root/lib/modules
 ROOT_PATH=$tmpdir/root BOOT_PATH=$tmpdir/boot $tmpdir/rpi-update 
 
-#Add cmdline and config to boot partition
+# Add cmdline and config to boot partition
 cat <<"EOF" >$tmpdir/boot/cmdline.txt
 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
 EOF
@@ -72,10 +75,10 @@ disable_splash=1
 init_emmc_clock=250000000
 EOF
 
-#Fix init script to mount rootfs writeable
+# Fix init script to mount rootfs writeable
 sed -i'' 's/rootfs/\/dev\/mmcblk0p2/' $tmpdir/root/sbin/init
 
-#fstab
+# fstab
 cat <<"EOF" >$tmpdir/root/etc/fstab
 proc            /proc           proc    defaults          0       0
 /dev/mmcblk0p5  /boot           vfat    defaults          0       2
@@ -83,7 +86,7 @@ proc            /proc           proc    defaults          0       0
 # a swapfile is not a swap partition, so no using swapon|off from here on, use  dphys-swapfile swap[on|off]  for that
 EOF
 
-#Network
+# Network
 cat <<"EOF" >$tmpdir/root/etc/network/interfaces
 auto eth0
 iface eth0 inet dhcp
