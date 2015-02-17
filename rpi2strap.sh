@@ -19,6 +19,7 @@ echo Welcome to rpi2strap!
 # Set up temp environment
 tmpdir=$(mktemp -d)
 sdcard=$(echo $1 | sed 's/[0-9]*$//')
+cd $tmpdir
 mkdir $tmpdir/{boot,root}
 umount -f ${sdcard}* 2>/dev/null
 
@@ -92,13 +93,55 @@ auto eth0
 iface eth0 inet dhcp
 EOF
 
-#set up root password
-#apt sources +rpi
-#Some more stuff here...
+# Adding some things to the first boot´s init script
+csplit -f init $tmpdir/root/sbin/init '/echo.*deb.*sources\.list/'
+cat init00 >$tmpdir/root/sbin/init
+cat <<"EOT" >>$tmpdir/root/sbin/init
+# Set up default root password
+echo "root:toor" | chpasswd
 
-#Unmount
+# Add apt sources - we CANNOT do this before second stage finished!
+cat <<"EOF" >/etc/apt/sources.list
+deb http://ftp.de.debian.org/debian/ jessie main contrib non-free
+deb-src http://ftp.de.debian.org/debian/ jessie main contrib non-free
+
+deb http://security.debian.org/ jessie/updates main contrib non-free
+deb-src http://security.debian.org/ jessie/updates main contrib non-free
+
+deb http://ftp.de.debian.org/debian jessie-updates main contrib non-free
+deb-src http://ftp.de.debian.org/debian jessie-updates main contrib non-free
+
+deb http://ftp.de.debian.org/debian jessie-proposed-updates main contrib non-free
+deb-src http://ftp.de.debian.org/debian jessie-proposed-updates main contrib non-free
+
+deb http://ftp.debian.org/debian/ jessie-backports main contrib non-free
+EOF
+
+# APT settings
+cat <<"EOF" >/etc/apt/apt.conf.d/01debian
+APT::Default-Release "jessie";
+aptitude::UI::Package-Display-Format "%c%a%M%S %p %Z %v %V %t";
+
+# Update & Upgrade
+run ifconfig eth0 up
+run dhclient
+run aptitude -y update
+run aptitude -y upgrade
+EOF
+
+# APT pinning
+cat <<"EOF" >/etc/apt/preferences.d/aptpinning
+Package: *
+Pin: release n=jessie-backports
+Pin-Priority: -1
+EOF
+EOT
+tail -n +2 init01 >>$tmpdir/root/sbin/init
+sed -i'' 's/^finish$/run reboot/' $tmpdir/root/sbin/init
+
+# Unmount
 umount ${sdcard}*
 sleep 3
 umount -f ${sdcard}*
 
-echo OK, that\'s it. Just put the sdcard in your rpi2.
+echo OK, that\'s it. Plug in HDMI and keyboard, put the sdcard in your rpi2 and power it up.
