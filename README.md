@@ -4,7 +4,7 @@
 rpi2strap is a script for installing Debian GNU/Linux Jessie 8.0 armhf to a sd card. You will get real Debian, not Raspbian!
 
 ## Why?
-Why not? :-) I *hate* downloading big sd card images and dd'ing them onto my sd cards resulting in an overblown Raspbian installation with software I would never use. You'll simply get a basic Debian installation like from the netinstaller. Additionally you can use more recent software and get Debian security updates faster.
+Why not? :-) I *hate* downloading big sd card images and dd'ing them onto my sd cards resulting in an overblown Raspbian installation with software I would never use. You'll simply get a basic Debian installation like from the netinstaller with some more basic packages (see below). Additionally you can use more recent software and get Debian security updates faster.
 
 ## What you will need and how to I use it
 There is some software you have to install: grep, curl, csplit, dosfstools and cdebootstrap. You need an ethernet connection. **The installer does not work with wifi!**
@@ -16,8 +16,8 @@ Follow the instructions. After this first stage plug in ethernet, HDMI and a key
 - debian standard packages
 - keyboard-configuration, console-data, console-setup
 - ntp, tzdata, locales, openssh-server, ca-certificates, openssl
-- cpufrequtils, cpufreqd
-- rpi-update, raspi-config
+- cpufrequtils, cpufreqd, rpi-update, raspi-config
+- vim
 
 ## I need some Raspbian packages like raspi-config!
 No problem! The raspberrypi.org repository is now included in the sources.list. If you need packages from there like gpio you have to select them manually in aptitude. They will *never* be installed by dependecy because we **don't want to mix them up** with Debian packages. We just want to use the repo for some specific packages. Btw. raspi-config and rpi-update are already included so please don't install them with aptitude.
