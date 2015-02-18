@@ -12,8 +12,15 @@ There is some software you have to install: grep, curl, csplit, dosfstools and c
 ./rpi2strap /dev/[your sdcard]
 Follow the instructions. After this first stage plug in ethernet, HDMI and a keyboard and power up your Raspberry Pi 2. The installation will continue and after a reboot you can login with root:toor.
 
+## Packages already included
+- debian standard packages
+- keyboard-configuration, console-data, console-setup
+- ntp, tzdata, locales, openssh-server, ca-certificates, openssl
+- cpufrequtils, cpufreqd
+- rpi-update, raspi-config
+
 ## I need some Raspbian packages like raspi-config!
-Yeah, me too. At this time you need to install the packages by hand or compile them from source. Later I'm going to include the Raspbian repository and install the most important packages by default. First I have to figure out how this APT pinning thingy really works so that we **don't mix up Raspbian and Debian** packages. We just want to use the repo for some specific packages.
+No problem! The raspberrypi.org repository is now included in the sources.list. If you need packages from there like gpio you have to select them manually in aptitude. They will *never* be installed by dependecy because we **don't want to mix them up** with Debian packages. We just want to use the repo for some specific packages. Btw. raspi-config and rpi-update are already included so please don't install them with aptitude.
 
 ## Warnings
 rpi2strap is only working for Raspberry Pi 2. Every prior versions like B or B+ are **NOT SUPPORTED!** This is because pi2 is armv7 while earlier boards have armv6 which isn't supported by Debian armhf.
@@ -22,8 +29,6 @@ Please check that the config.txt (look inside my script) fits your needs. It has
 
 The installer enables SSH root login and password authentication so you can easily ssh to your new Debian installation. For security reasons you shouldn't use that in an production environment. Switch to pubkey authentication instead.
 
-## TODO
-- Figure out how apt pinning works and add Raspbian repo
 
 ## Am I allowed to modify and share it?
 Yes, of course but please keep the author name where it is :-)

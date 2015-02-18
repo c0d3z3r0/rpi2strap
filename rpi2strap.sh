@@ -42,7 +42,7 @@ mount ${sdcard}1 $tmpdir/boot
 mount ${sdcard}2 $tmpdir/root
 
 # Ok, let's install debian jessie
-cdebootstrap --arch=armhf -f standard --foreign jessie --include=aptitude,openssh-server,cpufrequtils,cpufreqd,ntp,fake-hwclock,tzdata,locales,console-setup,console-data,keyboard-configuration $tmpdir/root
+cdebootstrap --arch=armhf -f standard --foreign jessie --include=aptitude,openssh-server,cpufrequtils,cpufreqd,ntp,fake-hwclock,tzdata,locales,console-setup,console-data,keyboard-configuration,ca-certificates, $tmpdir/root
 
 # Install kernel and modules
 curl -o $tmpdir/root/usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update
@@ -117,6 +117,10 @@ cat <<-"EOT" >>$tmpdir/root/sbin/init
 		deb-src http://ftp.de.debian.org/debian jessie-proposed-updates main contrib non-free
 		
 		deb http://ftp.debian.org/debian/ jessie-backports main contrib non-free
+		deb-src http://ftp.debian.org/debian/ jessie-backports main contrib non-free
+
+		deb http://archive.raspberrypi.org/debian wheezy main
+		deb-src http://archive.raspberrypi.org/debian wheezy main
 	EOF
 	
 	# APT settings
@@ -130,14 +134,22 @@ cat <<-"EOT" >>$tmpdir/root/sbin/init
 		Package: *
 		Pin: release n=jessie-backports
 		Pin-Priority: -1
+
+		Package: *
+		Pin: origin archive.raspberrypi.org release=wheezy
+		Pin-Priority: -1
 	EOF
 	
 	# Update & Upgrade
 	run ifconfig eth0 up
 	run dhclient -v eth0
 	echo "Aptitude error that jessie isn't a valid source can be safely ignored."
+	run apt-key adv --fetch-keys http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
 	run aptitude -y update
 	run aptitude -y upgrade
+
+	# Install rpi-update and raspi-config package
+	run aptitude -t wheezy -y install rpi-update raspi-config
 
 	# Enable SSH PasswordAuthentication and root login
 	sed -i'' 's/without-password/yes/' /etc/ssh/sshd_config
