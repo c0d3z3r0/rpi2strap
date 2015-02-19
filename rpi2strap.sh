@@ -133,11 +133,11 @@ cat <<-"EOT" >>$tmpdir/root/sbin/init
 		cat <<-"EOF" >/etc/apt/preferences.d/aptpinning
 		Package: *
 		Pin: release n=jessie-backports
-		Pin-Priority: -1
+		Pin-Priority: 100
 
 		Package: *
-		Pin: origin archive.raspberrypi.org release=wheezy
-		Pin-Priority: -1
+		Pin: origin archive.raspberrypi.org
+		Pin-Priority: 100
 	EOF
 	
 	# Update & Upgrade
