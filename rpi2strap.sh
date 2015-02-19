@@ -42,7 +42,7 @@ mount ${sdcard}1 $tmpdir/boot
 mount ${sdcard}2 $tmpdir/root
 
 # Ok, let's install debian jessie
-cdebootstrap --arch=armhf -f standard --foreign jessie --include=aptitude,openssh-server,cpufrequtils,cpufreqd,ntp,fake-hwclock,tzdata,locales,console-setup,console-data,keyboard-configuration,ca-certificates,vim $tmpdir/root
+cdebootstrap --arch=armhf -f standard --foreign jessie --include=aptitude,apt-transport-https,openssh-server,cpufrequtils,cpufreqd,ntp,fake-hwclock,tzdata,locales,console-setup,console-data,keyboard-configuration,ca-certificates,vim $tmpdir/root
 
 # Install kernel and modules
 curl -o $tmpdir/root/usr/bin/rpi-update https://raw.githubusercontent.com/Hexxeh/rpi-update/master/rpi-update
