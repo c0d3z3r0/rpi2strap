@@ -22,6 +22,9 @@ Follow the instructions. After this first stage plug in ethernet, HDMI and a key
 ## I need some Raspbian packages like raspi-config!
 No problem! The raspberrypi.org repository is now included in the sources.list. If you need packages from there like gpio you have to select them manually in aptitude. They will *never* be installed by dependecy because we **don't want to mix them up** with Debian packages. We just want to use the repo for some specific packages. Btw. raspi-config and rpi-update are already included so please don't install them with aptitude.
 
+## I want wheezy instead of jessie
+Open the script with vim and type `:%s/jessie/wheezy`. Then close vim with `:wq`. That's it.
+
 ## Warnings
 rpi2strap is only working for Raspberry Pi 2. Every prior versions like B or B+ are **NOT SUPPORTED!** This is because pi2 is armv7 while earlier boards have armv6 which isn't supported by Debian armhf.
 
