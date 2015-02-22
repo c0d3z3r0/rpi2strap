@@ -55,7 +55,8 @@ cat <<-"EOF" >$tmpdir/boot/cmdline.txt
 	dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
 EOF
 
-cat <<-"EOF" >$tmpdir/boot/config.txt
+if [ "$1" != "-d" ]; then
+	cat <<-"EOF" >$tmpdir/boot/config.txt
 	disable_overscan=1
 	hdmi_group=2
 	hdmi_mode=35
@@ -64,15 +65,16 @@ cat <<-"EOF" >$tmpdir/boot/config.txt
 	config_hdmi_boost=5
 	arm_freq=1050
 	gpu_freq=250
-	sdram_freq=530
+	sdram_freq=520
 	over_voltage=6
-	over_voltage_sdram=4
-	core_freq=550
+	over_voltage_sdram=6
+	core_freq=560
 	avoid_pwm_pll=1
 	gpu_mem=16
 	disable_splash=1
-	init_emmc_clock=250000000
-EOF
+	init_emmc_clock=300000000
+	EOF
+fi
 
 # Fix init script to mount rootfs writeable
 sed -i'' 's/rootfs/\/dev\/mmcblk0p2/' $tmpdir/root/sbin/init

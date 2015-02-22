@@ -28,7 +28,7 @@ Open the script with vim and type `:%s/jessie/wheezy`. Then close vim with `:wq`
 ## Warnings
 rpi2strap is only working for Raspberry Pi 2. Every prior versions like B or B+ are **NOT SUPPORTED!** This is because pi2 is armv7 while earlier boards have armv6 which isn't supported by Debian armhf.
 
-Please check that the config.txt (look inside my script) fits your needs. It has HDMI/DVI and overclocking enabled. Graphics memory is set to the smallest possible value because I only use it as a server.
+Please check that the config.txt (look inside my script) fits your needs. It has HDMI/DVI and overclocking enabled. Graphics memory is set to the smallest possible value because I only use it as a server. If you want to use the default values (no overclocking) use the -d switch.
 
 The installer enables SSH root login and password authentication so you can easily ssh to your new Debian installation. For security reasons you shouldn't use that in an production environment. Switch to pubkey authentication instead.
 
