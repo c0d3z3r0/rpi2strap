@@ -64,7 +64,6 @@ def checkdep():
     tools = [("dosfstools", "mkfs.msdos"),
              ("cdebootstrap", "cdebootstrap"),
              ("curl", "curl"),
-             ("csplit", "csplit"),
              ("fdisk", "fdisk"),
              ("sed", "sed"),
              ("mktemp", "mktemp")

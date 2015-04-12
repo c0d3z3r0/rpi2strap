@@ -7,7 +7,7 @@ rpi2strap is a script for installing Debian GNU/Linux Jessie 8.0 armhf to a sd c
 Why not? :-) I *hate* downloading big sd card images and dd'ing them onto my sd cards resulting in an overblown Raspbian installation with software I would never use. You'll simply get a basic Debian installation like from the netinstaller with some more basic packages (see below). Additionally you get armv7 compiled software instead of armv6 (raspbian). You can use more recent software and get Debian security updates faster.
 
 ## What you will need and how to I use it
-There is some software you have to install: grep, curl, csplit, dosfstools and cdebootstrap. You need an ethernet connection for your rpi. **The installer does not work with wifi!**
+There is some software you have to install: python3, python3-colorama, grep, curl, dosfstools and cdebootstrap. You need an ethernet connection for your rpi. **The installer does not work with wifi!**
 
 ./rpi2strap /dev/[your sdcard]
 Follow the instructions. After this first stage plug in ethernet, HDMI and a keyboard and power up your Raspberry Pi 2. The installation will continue and after a reboot you can login with root:toor.
