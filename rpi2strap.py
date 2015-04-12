@@ -290,12 +290,14 @@ cat <<"EOF" >/etc/rc.local
 mv /etc/rc.local.ORIG /etc/rc.local
 reboot
 exit 0
-EOF""".splitlines()
+EOF
+
+""".splitlines(True)
 
     npos = len(olines)-1
     olines[npos:npos] = nlines
     n = open("%s/root/sbin/init" % tmp.name, "w")
-    n.writelines(nlines)
+    n.writelines(olines)
     n.close()
 
     # Unmount and cleanup
@@ -306,7 +308,7 @@ EOF""".splitlines()
     tmp.cleanup()
 
     lprint(co.Fore.GREEN + "OK, that's it. Plug in Network, HDMI and keyboard,"
-                           " put the sdcard in your rpi2 and power it up.")
+                           " put the sdcard into your rpi2 and power it up.")
 
 
 if __name__ == '__main__':
