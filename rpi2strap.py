@@ -9,7 +9,8 @@ import re
 import argparse
 import subprocess as su
 import colorama as co
-import tempfile
+import tempfile as tm
+import shutil as sh
 
 
 def logwrite(text):
@@ -34,21 +35,28 @@ def print_err(error):
 
 
 def print_warn(warning):
-    lprint(co.Fore.YELLOW + warning)
+    lprint(co.Fore.YELLOW + warning + co.Fore.RESET)
 
 
-def run(command, check=1, quit=1, err=1):
-    ret = su.getstatusoutput(command)
-    logwrite(ret[1] + "\n")
-    if check and ret[0]:
-        if err:
-            print_err(ret[1])
-        if quit:
-            sys.exit(1)
-        else:
-            return False
+def run(command, out=0, quit=1):
+    if out:
+        ret = su.call(command, shell=True)
+        success = not ret
+        error = "Unknown error."
     else:
-        return True
+        ret = su.getstatusoutput(command)
+        success = not ret[0]
+        error = ret[1]
+        logwrite(error + "\n")
+
+    if quit and not success:
+        print_err(error)
+        try:
+            sys.exit(1)
+        except OSError:
+            pass
+    else:
+        return success
 
 
 def parseargs():
@@ -66,11 +74,12 @@ def checkdep():
              ("curl", "curl"),
              ("fdisk", "fdisk"),
              ("sed", "sed"),
-             ("mktemp", "mktemp")
+             ("qemu-arm-static", "qemu-arm-static"),
+             ("fuser", "fuser"),
              ]
     missing = []
     for t in tools:
-        run("which %s" % t[1], quit=0, err=0) or missing.append(t[0])
+        run("which %s" % t[1], quit=0) or missing.append(t[0])
     if missing:
         print_err("Missing dependencies: %s" % ', '.join(missing))
 
@@ -95,125 +104,76 @@ def main():
         sys.exit(1)
 
     lprint("Welcome to rpi2strap!")
-    print_warn("Note that you will need to enter your root password when "
-               "you are prompted for a password.")
 
-    lprint(co.Fore.RED + "This is your last chance to abort!")
+    lprint(co.Fore.RED + "This is your last chance to abort!" + co.Fore.RESET)
     print_warn("Your sdcard is %s. Is that right? [yN] " % sdcard)
     if input() is not "y":
         lprint("OK. Aborting ...")
         sys.exit(0)
 
-    run("umount -f %s*" % sdcard, check=0)
+    run("umount -f %s*" % sdcard, quit=0)
 
     # Delete MBR and partition table and create a new one
-    lprint("Deleting MBR and partition table and create a new one.")
+    lprint("Delete MBR and partition table and create a new one.")
     run("dd if=/dev/zero of=%s bs=1M count=1" % sdcard)
     run("(echo o; echo n; echo p; echo 1; echo ; echo +32M; echo t; "
         "echo e; echo n; echo p; echo 2; echo ; echo ; echo w) | "
         "fdisk %s" % sdcard)
 
     # Create filesystems and mount them
-    lprint("Creating filesystems and mount them.")
-    tmp = tempfile.TemporaryDirectory()
-    os.mkdir("%s/boot" % tmp.name, 755)
-    os.mkdir("%s/root" % tmp.name, 755)
+    lprint("Create filesystems and mount them.")
     run("mkfs.msdos %s1" % sdcard)
-    run("mkfs.ext4 %s2" % sdcard)
-    run("mount %s1 %s/boot" % (sdcard, tmp.name))
-    run("mount %s2 %s/root" % (sdcard, tmp.name))
+    run("mkfs.ext4 -F %s2" % sdcard)
+    tmp = tm.TemporaryDirectory()
+    run("mount %s2 %s" % (sdcard, tmp.name))
 
     # Ok, let's install debian
-    lprint("Ok, let's install debian. This can take some minutes.")
+    lprint("Install debian. First stage. This will take some minutes.")
     packages = ["aptitude", "apt-transport-https", "openssh-server",
                 "cpufrequtils", "cpufreqd", "ntp", "fake-hwclock", "tzdata",
                 "locales", "console-setup", "console-data", "vim", "psmisc",
                 "keyboard-configuration", "ca-certificates"
                 ]
     run("cdebootstrap --arch=armhf -f standard --foreign jessie "
-        "--include=%s %s/root" % (','.join(packages), tmp.name))
+        "--include=%s %s" % (','.join(packages), tmp.name))
 
-    # Install kernel and modules
-    lprint("Installing kernel and modules.")
-    run("curl -o %s/root/usr/bin/rpi-update https://raw.githubusercontent.com/"
-        "Hexxeh/rpi-update/master/rpi-update" % tmp.name)
-    os.chmod("%s/root/usr/bin/rpi-update" % tmp.name, 755)
-    os.mkdir("%s/root/lib/modules" % tmp.name, 755)
-    run("ROOT_PATH=%s/root BOOT_PATH=%s/boot %s/root/usr/bin/rpi-update"
-        % (tmp.name, tmp.name, tmp.name))
+    # Run second stage installer
+    lprint("Second stage. Again, please wait some minutes.")
+    print_warn("You can safely ignore the perl and locale warnings.")
+    sh.copy2("/usr/bin/qemu-arm-static", "%s/usr/bin/qemu-arm-static"
+             % tmp.name)
+    run("chroot %s /sbin/cdebootstrap-foreign" % tmp.name)
+    run("chroot %s dpkg-reconfigure locales console-setup console-data "
+        "keyboard-configuration tzdata" % tmp.name, out=1)
 
-    # Add cmdline and config to boot partition
-    lprint("Adding cmdline and config to boot partition.")
-    f = open("%s/boot/cmdline.txt" % tmp.name, "w")
-    print("dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 "
-          "root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait",
-          file=f)
-    f.close()
-
-    # Overclocking
-    if args.oc:
-        f = open("%s/boot/config.txt" % tmp.name, "w")
-        print("""\
-disable_overscan=1
-hdmi_group=2
-hdmi_mode=35
-hdmi_drive=1
-hdmi_force_hotplug=1
-config_hdmi_boost=5
-arm_freq=1050
-gpu_freq=250
-sdram_freq=550
-over_voltage=6
-over_voltage_sdram=6
-core_freq=550
-avoid_pwm_pll=1
-gpu_mem=16
-disable_splash=1
-init_emmc_clock=300000000""",
-              file=f)
-        f.close()
-
-    # Fix init script to mount rootfs writeable
-    lprint("Fixing init script to mount rootfs writeable.")
-    run("sed -i'' 's/rootfs/\/dev\/mmcblk0p2/' %s/root/sbin/init" % tmp.name)
+    # Write config files
+    lprint("Configure the system.")
 
     # fstab
-    lprint("Writing fstab.")
-    f = open("%s/root/etc/fstab" % tmp.name, "w")
+    f = open("%s/etc/fstab" % tmp.name, "w")
     print("""\
 proc            /proc           proc    defaults          0       0
 /dev/mmcblk0p1  /boot           vfat    defaults          0       2
 /dev/mmcblk0p2  /               ext4    defaults,noatime  0       1
 # a swapfile is not a swap partition, so no using swapon|off from here on,
-# use  dphys-swapfile swap[on|off]  for that,""",
-          file=f)
+# use  dphys-swapfile swap[on|off]  for that""", file=f)
     f.close()
 
     # Networking
-    lprint("Setting up networking and hostname.")
-    f = open("%s/root/etc/network/interfaces" % tmp.name, "w")
+    f = open("%s/etc/network/interfaces" % tmp.name, "w")
     print("""\
 auto eth0
-iface eth0 inet dhcp""",
-          file=f)
+iface eth0 inet dhcp""", file=f)
     f.close()
 
     # Hostname
-    f = open("%s/root/etc/hostname" % tmp.name, "w")
+    f = open("%s/etc/hostname" % tmp.name, "w")
     print("raspberrypi", file=f)
     f.close()
 
-    # Adding some things to the first boot´s init script
-    lprint("Adding more instructions to the first boot´s init script.")
-    o = open("%s/root/sbin/init" % tmp.name, "r")
-    olines = o.readlines()
-    o.close()
-    nlines = """\
-# Set up default root password
-echo "root:toor" | chpasswd
-
-# Add apt sources - we CANNOT do this before second stage finished!
-cat <<"EOF" >/etc/apt/sources.list
+    # Add apt sources
+    f = open("%s/etc/apt/sources.list" % tmp.name, "w")
+    print("""\
 deb http://ftp.de.debian.org/debian/ jessie main contrib non-free
 deb-src http://ftp.de.debian.org/debian/ jessie main contrib non-free
 
@@ -230,84 +190,115 @@ deb http://ftp.debian.org/debian/ jessie-backports main contrib non-free
 deb-src http://ftp.debian.org/debian/ jessie-backports main contrib non-free
 
 deb http://archive.raspberrypi.org/debian wheezy main
-deb-src http://archive.raspberrypi.org/debian wheezy main
-EOF
+deb-src http://archive.raspberrypi.org/debian wheezy main""", file=f)
+    f.close()
 
-# APT settings
-cat <<"EOF" >/etc/apt/apt.conf.d/01debian
+    # APT settings
+    f = open("%s/etc/apt/apt.conf.d/01debian" % tmp.name, "w")
+    print("""\
 APT::Default-Release "jessie";
-aptitude::UI::Package-Display-Format "%c%a%M%S %p %Z %v %V %t";
-EOF
+aptitude::UI::Package-Display-Format "%c%a%M%S %p %Z %v %V %t";""", file=f)
+    f.close()
 
-# APT pinning
-cat <<"EOF" >/etc/apt/preferences.d/aptpinning
+    # APT pinning
+    f = open("%s/etc/apt/preferences.d/aptpinning" % tmp.name, "w")
+    print("""\
 Package: *
 Pin: release n=jessie-backports
 Pin-Priority: 100
 
 Package: *
 Pin: origin archive.raspberrypi.org
-Pin-Priority: 100
-EOF
+Pin-Priority: 100""", file=f)
+    f.close()
 
-# Update & Upgrade
-run ifconfig eth0 up
-run dhclient -v eth0
-echo "Aptitude error that jessie isn't a valid source can be safely ignored."
-run apt-key adv --fetch-keys http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
-run aptitude -y update
-run aptitude -y upgrade
+    # Change DHCP timeout because we get stuck at boot if there is no network
+    run("sed -i'' 's/#timeout.*;/timeout 10;/' %s/etc/dhcp/dhclient.conf"
+        % tmp.name)
 
-# Install rpi-update and raspi-config package
-run aptitude -t wheezy -y install rpi-update raspi-config
-# Disable raspi-config init script because we have cpufreqd
-run update-rc.d -f raspi-config remove
+    # Enable SSH PasswordAuthentication and root login
+    run("sed -i'' 's/without-password/yes/' %s/etc/ssh/sshd_config"
+        % tmp.name)
+    run("sed -i'' 's/#PasswordAuth/PasswordAuth/' %s/etc/ssh/sshd_config"
+        % tmp.name)
 
-# Change DHCP timeout because we get stuck at boot if there is no network
-sed -i'' 's/#timeout.*;/timeout 10;/' /etc/dhcp/dhclient.conf
+    # Set up default root password
+    run("chroot %s echo 'root:toor' | chpasswd" % tmp.name)
 
-# Enable SSH PasswordAuthentication and root login
-sed -i'' 's/without-password/yes/' /etc/ssh/sshd_config
-sed -i'' 's/#PasswordAuth/PasswordAuth/' /etc/ssh/sshd_config
+    # Update & Upgrade
+    lprint("Update the system.")
+    run("chroot %s apt-key adv --fetch-keys http://archive.raspberrypi.org/"
+        "debian/raspberrypi.gpg.key" % tmp.name)
+    run("chroot %s aptitude -y update" % tmp.name)
+    run("chroot %s aptitude -y upgrade" % tmp.name)
 
-# Reconfigure some packages
-export DEBIAN_FRONTEND=dialog
-run dpkg-reconfigure locales console-setup console-data keyboard-configuration tzdata
+    # Install rpi-update and raspi-config package
+    lprint("Install rpi-update and raspi-config package.")
+    run("chroot %s aptitude -t wheezy -y install rpi-update raspi-config"
+        % tmp.name)
+    run("chroot %s systemctl disable raspi-config.service" % tmp.name)
 
-# Link videocore binaries
-echo /opt/vc/lib >/etc/ld.so.conf.d/videocore.conf
-ldconfig
+    # Install kernel and modules
+    lprint("Install kernel and modules.")
+    run("mount %s1 %s/boot" % (sdcard, tmp.name))
+    os.mkdir("%s/lib/modules" % tmp.name, 755)
+    run("chroot %s /usr/bin/rpi-update" % tmp.name)
 
-# Add videocore binaries to PATH for root
-ln -s /opt/vc/bin/* /usr/bin/
-ln -s /opt/vc/sbin/* /usr/sbin/
+    # Link videocore binaries
+    f = open("%s/etc/ld.so.conf.d/videocore.conf" % tmp.name, "w")
+    print("/opt/vc/lib", file=f)
+    f.close()
+    run("chroot %s ldconfig" % tmp.name)
+    for item in os.listdir('%s/opt/vc/bin' % tmp.name):
+        os.symlink('%s/opt/vc/bin/' % tmp.name + item,
+                   "%s/usr/bin/" % tmp.name + item)
+    for item in os.listdir('%s/opt/vc/sbin' % tmp.name):
+        os.symlink('%s/opt/vc/sbin/' % tmp.name + item,
+                   "%s/usr/sbin/" % tmp.name + item)
 
-# Add reboot to rc.local as a workaround to reboot because we need init
-cp /etc/rc.local /etc/rc.local.ORIG
-cat <<"EOF" >/etc/rc.local
-#!/bin/sh
-mv /etc/rc.local.ORIG /etc/rc.local
-reboot
-exit 0
-EOF
+    # Add cmdline and config to boot partition
+    lprint("Add cmdline.")
+    f = open("%s/boot/cmdline.txt" % tmp.name, "w")
+    print("dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 "
+          "root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait",
+          file=f)
+    f.close()
 
-""".splitlines(True)
-
-    npos = len(olines)-1
-    olines[npos:npos] = nlines
-    n = open("%s/root/sbin/init" % tmp.name, "w")
-    n.writelines(olines)
-    n.close()
+    # Overclocking
+    if args.oc:
+        lprint("Configure overclocking.")
+        f = open("%s/boot/config.txt" % tmp.name, "w")
+        print("""\
+#disable_overscan=1
+#hdmi_group=2
+#hdmi_mode=82
+#hdmi_drive=1
+#hdmi_force_hotplug=1
+#config_hdmi_boost=5
+arm_freq=1050
+gpu_freq=250
+sdram_freq=550
+over_voltage=6
+over_voltage_sdram=6
+core_freq=550
+avoid_pwm_pll=1
+gpu_mem=16
+disable_splash=1
+init_emmc_clock=300000000""", file=f)
+        f.close()
 
     # Unmount and cleanup
     lprint("Unmount and cleanup.")
-    run("umount %s*" % sdcard, check=0)
-    time.sleep(5)
-    run("umount -f %s*" % sdcard, check=0)
+    run("fuser -k %s/boot %s/* %s" % (tmp.name, tmp.name, tmp.name))
+    run("umount %s1" % sdcard, quit=0)
+    run("umount %s2" % sdcard, quit=0)
+    run("umount -f %s1" % sdcard, quit=0)
+    run("umount -f %s2" % sdcard, quit=0)
     tmp.cleanup()
 
-    lprint(co.Fore.GREEN + "OK, that's it. Plug in Network, HDMI and keyboard,"
-                           " put the sdcard into your rpi2 and power it up.")
+    lprint(co.Fore.GREEN + "OK, that's it. Put the sdcard into your rpi2 and "
+                           "power it up.\nThe root password is 'toor'."
+                         + co.Fore.RESET)
 
 
 if __name__ == '__main__':
