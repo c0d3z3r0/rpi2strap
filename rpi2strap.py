@@ -69,17 +69,17 @@ def parseargs():
 
 
 def checkdep():
-    tools = [("dosfstools", "mkfs.msdos"),
+    tools = [("mkfs.msdos", "dosfstools"),
              ("cdebootstrap", "cdebootstrap"),
              ("curl", "curl"),
              ("fdisk", "fdisk"),
              ("sed", "sed"),
              ("qemu-arm-static", "qemu-arm-static"),
-             ("fuser", "fuser"),
+             ("fuser", "psmisc"),
              ]
     missing = []
     for t in tools:
-        run("which %s" % t[1], quit=0) or missing.append(t[0])
+        run("which %s" % t[0], quit=0) or missing.append(t[1])
     if missing:
         print_err("Missing dependencies: %s" % ', '.join(missing))
 

@@ -7,7 +7,19 @@ rpi2strap is a script for installing Debian GNU/Linux Jessie 8.0 armhf to a sd c
 Why not? :-) I *hate* downloading big sd card images and dd'ing them onto my sd cards resulting in an overblown Raspbian installation with software I will never use. You'll simply get a basic Debian installation like from the netinstaller with some more basic packages (see below). Additionally you get armv7 compiled software instead of armv6 (raspbian). You can use more recent software and get Debian security updates much faster.
 
 ## What you will need and how to I use it
-There is some software you have to install before using my installer: python3, python3-colorama, grep, sed, curl, dosfstools and cdebootstrap. You'll be warned if something is missing.
+There is some software you have to install before using my installer:
+
+* python3
+* python3-colorama
+* sed
+* psmisc
+* fdisk
+* curl
+* dosfstools
+* cdebootstrap
+* qemu-arm-static.
+
+*You'll be warned if something is missing.*
 
 ## Usage
 Just look at the help: ./rpi2strap.py -h
