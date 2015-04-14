@@ -132,7 +132,7 @@ def main():
     packages = ["aptitude", "apt-transport-https", "openssh-server",
                 "cpufrequtils", "cpufreqd", "ntp", "fake-hwclock", "tzdata",
                 "locales", "console-setup", "console-data", "vim", "psmisc",
-                "keyboard-configuration", "ca-certificates"
+                "keyboard-configuration", "ca-certificates", "dbus"
                 ]
     run("cdebootstrap --arch=armhf -f standard --foreign jessie "
         "--include=%s %s" % (','.join(packages), tmp.name))
@@ -222,6 +222,9 @@ Pin-Priority: 100""", file=f)
     run("sed -i'' 's/#PasswordAuth/PasswordAuth/' %s/etc/ssh/sshd_config"
         % tmp.name)
 
+    # Fix missing display-manager.service
+    run("chroot %s systemctl disable display-manager.service" % tmp.name)
+
     # Set up default root password
     run("chroot %s echo 'root:toor' | chpasswd" % tmp.name)
 
@@ -282,7 +285,7 @@ over_voltage=6
 over_voltage_sdram=6
 core_freq=550
 avoid_pwm_pll=1
-gpu_mem=16
+gpu_mem=32
 disable_splash=1
 init_emmc_clock=300000000""", file=f)
         f.close()
