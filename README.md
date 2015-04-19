@@ -4,7 +4,7 @@
 rpi2strap is a script for installing Debian GNU/Linux Jessie 8.0 armhf to a sd card. You will get real Debian, not Raspbian!
 
 ## Why?
-Why not? :-) I *hate* downloading big sd card images and dd'ing them onto my sd cards resulting in an overblown Raspbian installation with software I will never use. You'll simply get a basic Debian installation like from the netinstaller with some more basic packages (see below). Additionally you get armv7 compiled software instead of armv6 (raspbian). You can use more recent software and get Debian security updates much faster.
+Why not? :-) I *hate* downloading big sd card images and dd'ing them onto my sd cards resulting in an overblown Raspbian installation with software I am never going to use. You'll simply get a basic Debian installation like from the netinstaller with some more basic packages (see below). Additionally you get armv7 compiled software instead of armv6 (raspbian). You can use more recent software and get Debian security updates much faster.
 
 ## What you will need and how to I use it
 There is some software you have to install before using my installer:

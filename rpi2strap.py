@@ -30,15 +30,14 @@ def main():
         {'start': '', 'end': '', 'type': '83', 'fs': 'ext4',
          'mount': '/'}
     ]
-    packages = []
+    packages = ["fake-hwclock"]
     if args.packages:
         packages += args.packages.split(',')
 
-    # Download armdebootstrap and create object
-    if not os.path.exists('armdebootstrap.py'):
-        os.system('curl -so armdebootstrap.py --connect-timeout 5 '
-                  'https://raw.githubusercontent.com/c0d3z3r0/armdebootstrap/'
-                  'master/armdebootstrap.py')
+    # Download latest armdebootstrap and create object
+    os.system('curl -so armdebootstrap.py --connect-timeout 5 '
+              'https://raw.githubusercontent.com/c0d3z3r0/armdebootstrap/'
+              'master/armdebootstrap.py')
     from armdebootstrap import ArmDeboostrap
     adb = ArmDeboostrap(name, hostname, sdcard, partitions, packages)
 
