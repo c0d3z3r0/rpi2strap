@@ -85,17 +85,20 @@ def main():
 #hdmi_drive=1
 #hdmi_force_hotplug=1
 #config_hdmi_boost=5
-arm_freq=1050
-gpu_freq=250
-sdram_freq=550
-over_voltage=6
-over_voltage_sdram=6
 core_freq=550
+gpu_freq=250
+arm_freq=1050
+over_voltage=6
+sdram_freq=550
+over_voltage_sdram=6
+init_emmc_clock=300000000
 avoid_pwm_pll=1
 gpu_mem=32
-disable_splash=1
-init_emmc_clock=300000000\
+disable_splash=1\
         """)
+    else:
+        # touch /boot/config
+        open('/boot/config', 'w').close()
 
     # ################### end RPi specific stuff ####################
 
