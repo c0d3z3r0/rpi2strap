@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-__author__ = "Michael Niewöhner"
+__author__ = 'Michael Niewöhner <c0d3z3r0>'
+__email__ = 'mniewoeh@stud.hs-offenburg.de'
 
 import argparse
 import sys
@@ -98,7 +99,7 @@ disable_splash=1\
         """)
     else:
         # touch /boot/config
-        open('/boot/config', 'w').close()
+        open('/boot/config.txt', 'w').close()
 
     # ################### end RPi specific stuff ####################
 
