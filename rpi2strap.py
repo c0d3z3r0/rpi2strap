@@ -35,14 +35,15 @@ def main():
     if args.packages:
         packages += args.packages.split(',')
 
-    # Download latest armdebootstrap and create object
-    os.system('curl -so armdebootstrap.py --connect-timeout 5 '
-              'https://raw.githubusercontent.com/c0d3z3r0/armdebootstrap/'
-              'master/armdebootstrap.py')
-    from armdebootstrap import ArmDeboostrap
-    adb = ArmDeboostrap(name, hostname, sdcard, partitions, packages)
+    # Download latest armdebootstrap
+    if not os.path.isfile("armdebootstrap.py"):
+        os.system('curl -so armdebootstrap.py --connect-timeout 5 '
+                  'https://raw.githubusercontent.com/c0d3z3r0/armdebootstrap/'
+                  'master/armdebootstrap.py')
 
     # Initialize ArmDebootstrap and start the installation process
+    from armdebootstrap import ArmDeboostrap
+    adb = ArmDeboostrap(name, hostname, sdcard, partitions, packages)
     adb.init()
     adb.install()
 
