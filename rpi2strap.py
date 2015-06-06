@@ -26,7 +26,7 @@ def main():
     args = parseargs()
     name = 'RPi2strap'
     hostname = 'raspberrypi'
-    bootsize = '+' + args.bootsize + 'M'
+    bootsize = '+' + str(args.boot_size) + 'M'
     sdcard = args.sdcard[0]
     partitions = [
         {'start': '', 'end': bootsize, 'type': 'e', 'fs': 'msdos',
@@ -34,7 +34,7 @@ def main():
         {'start': '', 'end': '', 'type': '83', 'fs': 'ext4',
          'mount': '/'}
     ]
-    packages = ["fake-hwclock"]
+    packages = ["fake-hwclock", "binutils"]
     if args.packages:
         packages += args.packages.split(',')
 
@@ -54,18 +54,19 @@ def main():
 
     # Install rpi-update and raspi-config package
     adb.lprint("Install rpi-update and raspi-config package.")
-    adb.run('curl -Lso %s/usr/bin/rpi-update'
+    adb.run('curl -Lso %s/usr/bin/rpi-update '
             'https://raw.githubusercontent.com/Hexxeh/rpi-update/master/'
             'rpi-update' % adb.tmp)
     adb.run('curl -Lso %s/usr/bin/raspi-config '
             'https://raw.githubusercontent.com/asb/raspi-config/master/'
             'raspi-config' % adb.tmp)
-    adb.run('chroot +x %s/usr/bin/rpi-update %s/usr/bin/raspi-config' %
+    adb.run('chmod +x %s/usr/bin/rpi-update %s/usr/bin/raspi-config' %
             (adb.tmp, adb.tmp))
 
     # Install kernel and modules
     adb.lprint("Install kernel and modules.")
-    os.mkdir("%s/lib/modules" % adb.tmp, 755)
+    if not os.path.isdir("%s/lib/modules" % adb.tmp):
+        os.mkdir("%s/lib/modules" % adb.tmp, 755)
     adb.run("chroot %s /usr/bin/rpi-update" % adb.tmp)
 
     # Add videocore binaries to path
