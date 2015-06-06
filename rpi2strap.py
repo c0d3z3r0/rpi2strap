@@ -52,23 +52,23 @@ def main():
     # Install rpi-update and raspi-config package
     adb.lprint("Install rpi-update and raspi-config package.")
     adb.run("chroot %s aptitude -t wheezy -y install rpi-update raspi-config"
-            % adb.tmp.name)
-    adb.run("chroot %s systemctl disable raspi-config.service" % adb.tmp.name)
+            % adb.tmp)
+    adb.run("chroot %s systemctl disable raspi-config.service" % adb.tmp)
 
     # Install kernel and modules
     adb.lprint("Install kernel and modules.")
-    os.mkdir("%s/lib/modules" % adb.tmp.name, 755)
-    adb.run("chroot %s /usr/bin/rpi-update" % adb.tmp.name)
+    os.mkdir("%s/lib/modules" % adb.tmp, 755)
+    adb.run("chroot %s /usr/bin/rpi-update" % adb.tmp)
 
     # Link videocore binaries
     adb.writeFile('/etc/ld.so.conf.d/videocore.conf', '/opt/vc/lib')
-    adb.run("chroot %s ldconfig" % adb.tmp.name)
-    for item in os.listdir('%s/opt/vc/bin' % adb.tmp.name):
-        os.symlink('%s/opt/vc/bin/' % adb.tmp.name + item,
-                   "%s/usr/bin/" % adb.tmp.name + item)
-    for item in os.listdir('%s/opt/vc/sbin' % adb.tmp.name):
-        os.symlink('%s/opt/vc/sbin/' % adb.tmp.name + item,
-                   "%s/usr/sbin/" % adb.tmp.name + item)
+    adb.run("chroot %s ldconfig" % adb.tmp)
+    for item in os.listdir('%s/opt/vc/bin' % adb.tmp):
+        os.symlink('%s/opt/vc/bin/' % adb.tmp + item,
+                   "%s/usr/bin/" % adb.tmp + item)
+    for item in os.listdir('%s/opt/vc/sbin' % adb.tmp):
+        os.symlink('%s/opt/vc/sbin/' % adb.tmp + item,
+                   "%s/usr/sbin/" % adb.tmp + item)
 
     # Add cmdline and config to boot partition
     adb.lprint("Add cmdline.")
