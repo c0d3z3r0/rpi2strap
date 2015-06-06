@@ -16,6 +16,8 @@ def parseargs():
                         help='Comma separated list of additional packages')
     parser.add_argument('--oc', "-o", action="store_true",
                         help='Enable overclocking')
+    parser.add_argument('--boot-size', "-b", type=int, default = 100,
+                        help='Boot partition size in MB')
     return parser.parse_args()
 
 
@@ -24,9 +26,10 @@ def main():
     args = parseargs()
     name = 'RPi2strap'
     hostname = 'raspberrypi'
+    bootsize = '+' + args.bootsize + 'M'
     sdcard = args.sdcard[0]
     partitions = [
-        {'start': '', 'end': '+32M', 'type': 'e', 'fs': 'msdos',
+        {'start': '', 'end': bootsize, 'type': 'e', 'fs': 'msdos',
          'mount': '/boot'},
         {'start': '', 'end': '', 'type': '83', 'fs': 'ext4',
          'mount': '/'}
