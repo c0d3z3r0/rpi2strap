@@ -105,7 +105,7 @@ disable_splash=1\
         """)
     else:
         # touch /boot/config
-        open('/boot/config.txt', 'w').close()
+        adb.writeFile('/boot/config.txt', "")
 
     # ################### end RPi specific stuff ####################
 
