@@ -17,7 +17,9 @@ There is some software you have to install before using my installer:
 * curl
 * dosfstools
 * cdebootstrap
-* qemu-arm-static.
+* qemu-user-static.
+
+If there is no package python3-colorama you can also install it with `pip3 install colorama` after installing `python3-pip` via aptitude / apt-get.
 
 *You'll be warned if something is missing.*
 
