@@ -70,7 +70,7 @@ def main():
     adb.lprint("Install kernel and modules.")
     if not os.path.isdir("%s/lib/modules" % adb.tmp):
         os.mkdir("%s/lib/modules" % adb.tmp, 755)
-    adb.run("chroot %s /usr/bin/rpi-update" % adb.tmp)
+    adb.run("SKIP_WARNING=1 chroot %s /usr/bin/rpi-update" % adb.tmp)
 
     # Add videocore binaries to path
     adb.writeFile('/etc/ld.so.conf.d/videocore.conf', '/opt/vc/lib')
