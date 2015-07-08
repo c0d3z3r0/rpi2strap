@@ -14,10 +14,12 @@ def parseargs():
                         help='SD card to install debian on e.g. /dev/sdc')
     parser.add_argument('--packages', "-p",
                         help='Comma separated list of additional packages')
-    parser.add_argument('--oc', "-o", action="store_true",
-                        help='Enable overclocking')
     parser.add_argument('--boot-size', "-b", type=int, default = 100,
                         help='Boot partition size in MB')
+    parser.add_argument('--oc', "-o", action="store_true",
+                        help='Enable overclocking')
+    parser.add_argument('--debug', "-d", action="store_true",
+                        help='Enable debug output')
     return parser.parse_args()
 
 
@@ -27,7 +29,6 @@ def main():
     name = 'RPi2strap'
     hostname = 'raspberrypi'
     bootsize = '+' + str(args.boot_size) + 'M'
-    sdcard = args.sdcard[0]
     partitions = [
         {'start': '', 'end': bootsize, 'type': 'e', 'fs': 'msdos',
          'mount': '/boot'},
@@ -47,7 +48,8 @@ def main():
 
     # Initialize ArmDebootstrap and start the installation process
     from armdebootstrap import ArmDeboostrap
-    adb = ArmDeboostrap(name, hostname, sdcard, partitions, packages)
+    adb = ArmDeboostrap(name, hostname, args.sdcard[0], partitions,
+                        packages, debug=args.debug)
     adb.init()
     adb.install()
 
