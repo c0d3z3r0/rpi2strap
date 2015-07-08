@@ -51,5 +51,8 @@ There have been error reports that this script doesn't work on Ubuntu so you nee
 ## Am I allowed to modify and share it?
 Yes, of course but please keep the author name where it is :-)
 
+## Problems?
+Open an issue on GitHub, please.
+
 ## Questions?
 Contact me on IRC via c0d3z3r0 @ freenode.net
