@@ -16,15 +16,12 @@ def parseargs():
                         help='Comma separated list of additional packages')
     parser.add_argument('--boot-size', "-b", type=int, default = 100,
                         help='Boot partition size in MB')
-    parser.add_argument('--oc', "-o", action="store_true",
-                        help='Enable overclocking')
     parser.add_argument('--debug', "-d", action="store_true",
                         help='Enable debug output')
     return parser.parse_args()
 
 
 def main():
-
     args = parseargs()
     name = 'RPi2strap'
     hostname = 'raspberrypi'
@@ -58,10 +55,10 @@ def main():
     # Install rpi-update and raspi-config package
     adb.lprint("Install rpi-update and raspi-config package.")
     adb.run('curl -Lso %s/usr/bin/rpi-update '
-            'https://raw.githubusercontent.com/Hexxeh/rpi-update/master/'
+            'https://raw.githubusercontent.com/c0d3z3r0/rpi-update/workbench/'
             'rpi-update' % adb.tmp)
     adb.run('curl -Lso %s/usr/bin/raspi-config '
-            'https://raw.githubusercontent.com/asb/raspi-config/master/'
+            'https://raw.githubusercontent.com/c0d3z3r0/raspi-config/workbench/'
             'raspi-config' % adb.tmp)
     adb.run('chmod +x %s/usr/bin/rpi-update %s/usr/bin/raspi-config' %
             (adb.tmp, adb.tmp))
@@ -85,30 +82,8 @@ def main():
                   "root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline "
                   "rootwait")
 
-    # Overclocking
-    if args.oc:
-        adb.lprint("Configure overclocking.")
-        adb.writeFile('/boot/config.txt', """\
-#disable_overscan=1
-#hdmi_group=2
-#hdmi_mode=82
-#hdmi_drive=1
-#hdmi_force_hotplug=1
-#config_hdmi_boost=5
-core_freq=533
-gpu_freq=250
-arm_freq=1067
-over_voltage=4
-sdram_freq=467
-over_voltage_sdram=0
-init_emmc_clock=300000000
-avoid_pwm_pll=1
-#gpu_mem=32
-disable_splash=1\
-        """)
-    else:
-        # touch /boot/config
-        adb.writeFile('/boot/config.txt', "")
+    # touch /boot/config
+    adb.writeFile('/boot/config.txt', "")
 
     # ################### end RPi specific stuff ####################
 
