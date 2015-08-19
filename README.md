@@ -56,3 +56,9 @@ Open an issue on GitHub, please.
 
 ## Questions?
 Contact me on IRC via c0d3z3r0 @ freenode.net
+
+# License
+
+Copyright (C) 2015 Michael Niewöhner
+
+This is open source software, licensed under GPLv2. See the file LICENSE for details.
