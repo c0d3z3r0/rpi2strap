@@ -55,7 +55,7 @@ def main():
     # Install rpi-update and raspi-config package
     adb.lprint("Install rpi-update and raspi-config package.")
     adb.run('curl -Lso %s/usr/bin/rpi-update '
-            'https://raw.githubusercontent.com/c0d3z3r0/rpi-update/workbench/'
+            'https://raw.githubusercontent.com/Hexxeh/rpi-update/master/'
             'rpi-update' % adb.tmp)
     adb.run('curl -Lso %s/usr/bin/raspi-config '
             'https://raw.githubusercontent.com/c0d3z3r0/raspi-config/workbench/'
