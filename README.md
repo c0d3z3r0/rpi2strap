@@ -17,7 +17,7 @@ There is some software you have to install before using my installer:
 * curl
 * dosfstools
 * cdebootstrap
-* qemu-user-static.
+* qemu-user-static
 
 If there is no package python3-colorama you can also install it with `pip3 install colorama` after installing `python3-pip` via aptitude / apt-get.
 
@@ -27,11 +27,30 @@ If there is no package python3-colorama you can also install it with `pip3 insta
 Just look at the help: ./rpi2strap.py -h
 
 ## Packages already included
-- debian standard packages
-- keyboard-configuration, console-data, console-setup
-- ntp, tzdata, locales, openssh-server, ca-certificates, openssl
-- cpufrequtils, cpufreqd, rpi-update, raspi-config, fake-hwclock
-- vim, aptitude, apt-transport-https, psmisc
+* debian standard packages
+* apt-transport-https
+* aptitude
+* binutils
+* ca-certificates
+* console-data
+* console-setup
+* cpufreqd
+* cpufrequtils
+* curl
+* dbus
+* fake-hwclock
+* htop
+* keyboard-configuration
+* locales
+* lua5.1
+* ntp
+* openssh-server
+* parted
+* psmisc
+* triggerhappy
+* tzdata
+* vim
+* whiptail
 
 ## I need some Raspbian packages like raspi-config!
 No problem! The raspberrypi.org repository is included in the sources.list. If you need packages from there like gpio you have to select them manually in aptitude. They will *never* be installed by dependecy because we **don't want to mix them up** with Debian packages. We just want to use the repo for some specific packages. Btw. raspi-config and rpi-update are already included.
