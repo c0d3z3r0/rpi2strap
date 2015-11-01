@@ -51,6 +51,8 @@ Just look at the help: ./rpi2strap.py -h
 * tzdata
 * vim
 * whiptail
+* wireless-tools
+* wpasupplicant
 
 ## I need some Raspbian packages like raspi-config!
 No problem! The raspberrypi.org repository is included in the sources.list. If you need packages from there like gpio you have to select them manually in aptitude. They will *never* be installed by dependecy because we **don't want to mix them up** with Debian packages. We just want to use the repo for some specific packages. Btw. raspi-config and rpi-update are already included.
