@@ -50,7 +50,7 @@ def main():
         {'start': '', 'end': '', 'type': '83', 'fs': 'ext4',
          'mount': '/'}
     ]
-    packages = ["fake-hwclock", "binutils", "whiptail", "parted", "lua5.1",
+    packages = ["fake-hwclock", "binutils", "parted", "lua5.1",
                 "triggerhappy"]
     if args.packages:
         packages += args.packages.split(',')
