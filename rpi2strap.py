@@ -51,7 +51,7 @@ def main():
          'mount': '/'}
     ]
     packages = ["fake-hwclock", "binutils", "parted", "lua5.1",
-                "triggerhappy"]
+                "triggerhappy", "ca-certificates", "curl"]
     if args.packages:
         packages += args.packages.split(',')
 
